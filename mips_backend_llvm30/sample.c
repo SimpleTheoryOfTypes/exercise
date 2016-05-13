@@ -1,7 +1,7 @@
 int fib(int x)
 {
   if (x <= 2)
-	  return 1;
+      return 1;
   else
-	  return fib(x) + fib(x - 1);
+      return fib(x) + fib(x - 1);
 }
