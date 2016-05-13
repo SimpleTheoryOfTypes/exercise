@@ -1,0 +1,4 @@
+Assume an environmental variable EULLVM30 is defined in ~/.bashrc.
+For example, 
+
+  export EULLVM30=/home/gaipaul/dev/LLVM/llvm-3.0.build/bin/ 
