@@ -1,7 +1,5 @@
-int fib(int x)
+int fib(int x, int y)
 {
-  if (x <= 2)
-      return 1;
-  else
-      return fib(x) + fib(x - 1);
+   int sum = x + y;
+   return sum / y;
 }
