@@ -1,4 +1,4 @@
-EULLVM38=/home/gaipaul/dev/LLVM/llvm-3.8.0.build
+EULLVM38=${HOME}/dev/LLVM/llvm-3.8.0.build
 SYS_CC=/usr/bin/gcc
 CC=clang
 INCLUDE_FLAGS=${EULLVM38}/projects/openmp/runtime/src
