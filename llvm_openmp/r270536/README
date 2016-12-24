@@ -1,0 +1,13 @@
+This is a demo to re-produce the bug that was fixed by r270536
+
+(The commit id right before r270536 is 
+ commit 22067566bcc793c31508a96c84ac93f62e65bc68
+).
+
+Also, setting up environmental variables might be necessary as
+well:
+
+export PATH=/Users/jiadinggai/dev/LLVM/llvm.git.build/bin:$PATH
+export DYLD_LIBRARY_PATH=$HOME/dev/LLVM/llvm.git.build/lib:${DYLD_LIBRARY_PATH}
+export LIBRARY_PATH=${HOME}/dev/LLVM/llvm.git.build/lib:${LIBRARY_PATH}
+export CPATH=${HOME}/dev/LLVM/llvm.git.build/projects/openmp/runtime/src/:${CPATH}
