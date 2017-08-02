@@ -1,0 +1,70 @@
+--scalac-------------------------------------------
+class Main {
+  def main(args: Array[String]) = {
+    println("Hello, " + args(0))
+  }
+}
+Compiled from "Main.scala"
+public class Main {
+  public void main(java.lang.String[]);
+  public Main();
+}
+--javac---------------------------------------------
+class Mainj {
+  public static void main(String[] args) {
+    System.out.println("Hello, " + args[0]);
+  }
+}
+Compiled from "Mainj.java"
+class Mainj {
+  Mainj();
+  public static void main(java.lang.String[]);
+}
+----------------------------------------------
+object Main {
+  def main(args: Array[String]) = {
+    println("Hello, " + args(0))
+  }
+}
+Compiled from "Main.scala"
+public final class Main$ {
+  public static final Main$ MODULE$;
+  public static {};
+  public void main(java.lang.String[]);
+}
+Compiled from "Main.scala"
+public final class Main {
+  public static void main(java.lang.String[]);
+}
+----------------------------------------------
+case class Main() {
+  def main(args: Array[String]) = {
+    println("Hello, " + args(0))
+  }
+}
+Compiled from "Main.scala"
+public final class Main$ extends scala.runtime.AbstractFunction0<Main> implements scala.Serializable {
+  public static final Main$ MODULE$;
+  public static {};
+  public final java.lang.String toString();
+  public Main apply();
+  public boolean unapply(Main);
+  public java.lang.Object apply();
+}
+Compiled from "Main.scala"
+public class Main implements scala.Product,scala.Serializable {
+  public static boolean unapply(Main);
+  public static Main apply();
+  public void main(java.lang.String[]);
+  public Main copy();
+  public java.lang.String productPrefix();
+  public int productArity();
+  public java.lang.Object productElement(int);
+  public scala.collection.Iterator<java.lang.Object> productIterator();
+  public boolean canEqual(java.lang.Object);
+  public int hashCode();
+  public java.lang.String toString();
+  public boolean equals(java.lang.Object);
+  public Main();
+}
+----------------------------------------------
