@@ -95,6 +95,36 @@
           </includes>
         </configuration>
       </plugin>
+      <plugin>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>3.0.2</version>
+          <configuration>
+              <archive>
+                  <manifest>
+                      <mainClass>org.vario.demo.App</mainClass>
+                      <addClasspath>true</addClasspath>
+                      <classpathLayoutType>custom</classpathLayoutType>
+                      <customClasspathLayout>lib/$${artifact.artifactId}-$${artifact.version}$${dashClassifier?}.$${artifact.extension}
+                      </customClasspathLayout>
+                  </manifest>
+              </archive>
+          </configuration>
+      </plugin>
+      <plugin>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>3.0.1</version>
+          <configuration>
+              <outputDirectory>${project.build.directory}/lib</outputDirectory>
+          </configuration>
+          <executions>
+              <execution>
+                  <phase>package</phase>
+                  <goals>
+                      <goal>copy-dependencies</goal>
+                  </goals>
+              </execution>
+          </executions>
+      </plugin>
     </plugins>
   </build>
 </project>
