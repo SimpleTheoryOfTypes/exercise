@@ -26,9 +26,9 @@ void profile_std_sort(int num_data)
   ATPairT vcv;
   for (int example = 0; example < num_data; ++example) {
     struct _ATPair atp;
-	atp.val = rand();
-	atp.clas = example;
-	vcv.push_back(atp);
+    atp.val = rand();
+    atp.clas = example;
+    vcv.push_back(atp);
   }
 
   std::sort(vcv.begin(), vcv.end(), CompAttrTargetPairObj);
@@ -48,12 +48,12 @@ int main(int argc, char *argv[])
 {
   if (argc != 2) {
     printf("Usage: ./test_std_sort_qsort q\n");  
-	exit(1);
+    exit(1);
   }
 
   int num_data = 199324970;
   if (argv[1][0] == 'q')
-	profile_std_qsort(num_data);
+    profile_std_qsort(num_data);
   else 
     profile_std_sort(num_data);
 
