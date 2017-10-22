@@ -1,10 +1,10 @@
 CC=clang
-all: mm test
-test:test.c
+all: mm reduction
+reduction:reduction.c
 	$(CC) -o $@ $^ -Wall -lpthread
 mm:mm.c
 	$(CC) -o $@ $^ -Wall -lpthread
 
 .PHONY:clean
 clean:
-	rm -f mm test
+	rm -f mm reduction
