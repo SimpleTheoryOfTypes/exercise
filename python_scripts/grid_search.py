@@ -9,10 +9,10 @@ import shlex
 import numpy as np
 import random
 
-cmd_template = "grep cmd_template -A NUM_LINES_AFTER -B NUM_LINES_BEFORE grid_search.py"
+cmd_template = "grep -rinI --color cmd_template -A NUM_LINES_AFTER -B NUM_LINES_BEFORE ./"
 
 work_queue = []
-for nlines_after in np.arange(1,5,2):
+for nlines_after in np.arange(1,15,2):
   for nlines_before in np.arange(2,6,3):
       nlines_after_str = str(nlines_after)
       nlines_before_str = str(nlines_before)
@@ -44,7 +44,7 @@ while work_queue:
                     outs, errs = p1.communicate()
                     rc = p1.poll()
                     print('  [JOB STATUS] ' + the_job.cmd)
-                    print('               %s seconds' % (time.time() - start_time))
+                    print('               %s seconds' % (time.time() - the_job.start_time))
                     print('               Exit Status: ' + rc.__str__())
                     if rc == 0: # job success
                         print('[SUCCESS] ' + the_job.cmd)
