@@ -77,6 +77,14 @@ for node in nodes:
         #DFS_visit(g, color, depth, finish, parent, node)
         DFS_visit_iter(g, color, depth, finish, parent, node)
 
+print("""list(nx.dfs_edges(g, source="u"))""")
+print(list(nx.dfs_edges(g, source="u")))
+
+print("""list(nx.dfs_tree(g, source="u"))""")
+print(list(nx.dfs_tree(g, source="u")))
+
+print("""list(nx.dfs_labeled_edges(g, source="u"))""")
+print(list(nx.dfs_labeled_edges(g, source="u")))
 # Viz Method 2: use graphviz 
 #h = nx.nx_agraph.from_agraph(g)
 #nx.write_dot(h, './graph.dot')
