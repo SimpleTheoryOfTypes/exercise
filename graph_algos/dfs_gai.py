@@ -4,13 +4,14 @@ import matplotlib.pyplot as plt
 
 #g = nx.read_adjlist('./sample.graph')
 g = nx.DiGraph()
-g.add_weighted_edges_from([(1, 2, 0.50), \
-                           (2, 3, 0.75), \
-                           (3, 4, 0.75), \
-                           (4, 2, 0.75), \
-                           (1, 4, 0.75), \
-                           (5, 3, 0.75), \
-                           (5, 6, 0.75)  \
+g.add_weighted_edges_from([("u", "v", 0.50), \
+                           ("v", "y", 0.75), \
+                           ("y", "x", 0.75), \
+                           ("u", "x", 0.75), \
+                           ("x", "v", 0.75), \
+                           ("w", "y", 0.75), \
+                           ("w", "z", 0.75), \
+                           ("z", "z", 0.75)  \
                           ])
 
 # Viz Method 1: use matplotlib
