@@ -55,12 +55,15 @@ def DFS_visit_iter(g, color, depth, finish, parent, node):
             time = time + 1
             depth[x] = time
             color[x] = 'Gray'
+        elif color[x] == 'Black':
+            stack.pop()
+            continue
 
         all_children_visited = True
-        for child in iter(g[node]):
+        for child in iter(g[x]):
             if color[child] == 'White':
                 all_children_visited = False
-                parent[child] = node
+                parent[child] = x
                 stack.append(child)
                 print("  adding ", child, " | current stack: ", stack)
 
@@ -77,6 +80,7 @@ for node in nodes:
         #DFS_visit(g, color, depth, finish, parent, node)
         DFS_visit_iter(g, color, depth, finish, parent, node)
 
+print("\n[Golden Reference]:")
 print("""list(nx.dfs_edges(g, source="u"))""")
 print(list(nx.dfs_edges(g, source="u")))
 
