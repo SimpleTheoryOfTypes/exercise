@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 #g = nx.read_adjlist('./sample.graph')
 g = nx.DiGraph()
-g.add_weighted_edges_from([("u", "v", 0.50), \
+g.add_weighted_edges_from([("u", "v", 0.75), \
                            ("v", "y", 0.75), \
                            ("y", "x", 0.75), \
                            ("u", "x", 0.75), \
@@ -50,8 +50,8 @@ def DFS_visit_iter(g, color, depth, finish, parent, node):
     stack = [node]
     while len(stack) > 0:
         x = stack[-1]
-        print("  visiting ", x)
         if color[x] == 'White':
+            print("  visiting ", x)
             time = time + 1
             depth[x] = time
             color[x] = 'Gray'
