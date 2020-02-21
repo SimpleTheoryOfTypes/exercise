@@ -75,4 +75,17 @@ def run_tf():
 output = run_tf()
 print(output)
 
-print(construct_bilinear_kernel_matrix(7, 33))
+# verify a faster matmul-based resize bilinear approach
+A = np.random.normal(loc=100.0, scale=256.0, size=(7,7)).astype("float32")
+T = construct_bilinear_kernel_matrix(7, 33)
+O = np.matmul(np.transpose(T), np.matmul(A, T))
+
+
+output_tensor = tf1.image.resize(np.reshape(A, newshape=(7,7,1)), \
+                                 size=(33,33), method=tf1.image.ResizeMethod.BILINEAR, \
+                                 align_corners=True)
+with tf.Session() as sess:
+    sess.run(output_tensor)
+    tf_output = np.squeeze(output_tensor.eval())
+assert np.allclose(tf_output, O, atol=1), "ERROR: numerical mismatch."
+print("[SUCCESS] Tensorflow and my matmul approach matched!")
