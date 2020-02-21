@@ -1,4 +1,4 @@
-#!usr/bin/env python3
+#!/usr/bin/env python3
 import numpy as np
 import tensorflow as tf
 import tensorflow.compat.v1 as tf1
@@ -21,6 +21,33 @@ def model_resize(x):
     return tf1.image.resize(x, size=(14,14), \
                             method=tf1.image.ResizeMethod.BILINEAR, \
                             align_corners=True)
+
+def construct_bilinear_kernel_matrix(w0, w1):
+    # w0 - input image width
+    # w1 - output image width
+    # assume image is squared.
+
+    # The unit length between pixels in the interpolated image.
+    unit1 = (np.float(w0) - 1) / (w1 - 1)
+
+    assert (w1 > w0) and (w0 & 1) and (w1 & 1), "ERROR: only verified when w1 > w0 (i.e., upsampling) and both shapes are odd numbers."
+
+    T = np.zeros(shape=(w0, w1))
+    for y in range(0, w1):
+        raw_dis = y * unit1
+        l = int(np.floor(raw_dis))
+        r = int(np.ceil(raw_dis))
+        delta = raw_dis -l
+
+        if y == 0 or y == (w1 - 1):
+            T[l, y] = 1.0 - delta
+        else:
+            T[l, y] = 1.0 - delta
+            T[r, y] = delta
+
+    T[w0 >> 1, w1 >> 1] = 1.0
+
+    return T
 
 def run_tf():
     input_box = tf.constant(input_numpy, dtype=tf.float32)
@@ -47,3 +74,5 @@ def run_tf():
 
 output = run_tf()
 print(output)
+
+print(construct_bilinear_kernel_matrix(7, 33))
