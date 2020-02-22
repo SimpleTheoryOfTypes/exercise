@@ -46,7 +46,6 @@ def construct_bilinear_kernel_matrix(w0, w1):
             T[r, y] = delta
 
     T[w0 >> 1, w1 >> 1] = 1.0
-
     return T
 
 def run_tf():
@@ -80,12 +79,11 @@ A = np.random.normal(loc=100.0, scale=256.0, size=(7,7)).astype("float32")
 T = construct_bilinear_kernel_matrix(7, 33)
 O = np.matmul(np.transpose(T), np.matmul(A, T))
 
-
 output_tensor = tf1.image.resize(np.reshape(A, newshape=(7,7,1)), \
                                  size=(33,33), method=tf1.image.ResizeMethod.BILINEAR, \
                                  align_corners=True)
 with tf.Session() as sess:
     sess.run(output_tensor)
     tf_output = np.squeeze(output_tensor.eval())
-assert np.allclose(tf_output, O, atol=1), "ERROR: numerical mismatch."
+assert np.allclose(tf_output, O, atol=2), "ERROR: numerical mismatch."
 print("[SUCCESS] Tensorflow and my matmul approach matched!")
