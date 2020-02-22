@@ -41,6 +41,8 @@ def construct_bilinear_kernel_matrix(w0, w1):
 
         if y == 0 or y == (w1 - 1):
             T[l, y] = 1.0 - delta
+        elif l == r:
+            T[l, y] = 1.0 - delta
         else:
             T[l, y] = 1.0 - delta
             T[r, y] = delta
@@ -87,3 +89,21 @@ with tf.Session() as sess:
     tf_output = np.squeeze(output_tensor.eval())
 assert np.allclose(tf_output, O, atol=2), "ERROR: numerical mismatch."
 print("[SUCCESS] Tensorflow and my matmul approach matched!")
+
+# Resize bilinear tryout on a real image.
+from PIL import Image
+im = Image.open("cameraman.png")
+im1 = im.crop((60, 60, 189, 189))
+im1.show()
+np_im1 = np.array(im1).astype(np.float32)
+print(np_im1)
+print(np_im1.shape)
+
+A = np_im1
+T = construct_bilinear_kernel_matrix(129, 257)
+print(T)
+O = np.matmul(np.transpose(T), np.matmul(A, T)).astype(np.uint8)
+print(O)
+new_im = Image.fromarray(O, mode='L')
+new_im.save("__output_257.png")
+new_im.show()
