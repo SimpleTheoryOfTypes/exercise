@@ -93,14 +93,14 @@ print("[SUCCESS] Tensorflow and my matmul approach matched!")
 # Resize bilinear tryout on a real image.
 from PIL import Image
 im = Image.open("cameraman.png")
-im1 = im.crop((60, 60, 189, 189))
+im1 = im.crop((0, 0, 255, 255))
 im1.show()
 np_im1 = np.array(im1).astype(np.float32)
 print(np_im1)
 print(np_im1.shape)
 
 A = np_im1
-T = construct_bilinear_kernel_matrix(129, 257)
+T = construct_bilinear_kernel_matrix(255, 571)
 print(T)
 O = np.matmul(np.transpose(T), np.matmul(A, T)).astype(np.uint8)
 print(O)
