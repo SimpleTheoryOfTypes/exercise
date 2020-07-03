@@ -45,40 +45,41 @@ def DFS_visit(g, color, depth, finish, parent, node):
   time = time + 1
   finish[node] = time
 
+
 def DFS_visit_iter(g, color, depth, finish, parent, node):
     global time
-    stack = [node]
-    while len(stack) > 0:
-        x = stack[-1]
-        if color[x] == 'White':
-            print("  visiting ", x)
+    time = time + 1
+    depth[node] = time
+    color[node] = 'Gray'
+    # Using list as a stack: 
+    # https://docs.python.org/2/tutorial/datastructures.html#using-lists-as-stacks
+    stack = [(node, iter(list(g[node])))] # i.e., (v, adj(v))
+
+    while stack:
+        cur_node = stack[-1][0]
+        children = stack[-1][1]
+        v = next(children, None)
+        if v is None:
             time = time + 1
-            depth[x] = time
-            color[x] = 'Gray'
-        elif color[x] == 'Black':
+            color[cur_node] = 'Black'
+            finish[cur_node] = time 
             stack.pop()
             continue
 
-        all_children_visited = True
-        for child in iter(g[x]):
-            if color[child] == 'White':
-                all_children_visited = False
-                parent[child] = x
-                stack.append(child)
-                print("  adding ", child, " | current stack: ", stack)
-
-        if color[x] == 'Gray' and all_children_visited == True:
-            color[x] = 'Black'
+        if (color[v] == 'White'):
+            parent[v] = node
             time = time + 1
-            finish[x] = time
-            stack.pop()
-            print("  popping ", x, " | current stack: ", stack)
+            depth[v] = time
+            color[v] = 'Gray'
+            stack.append((v, iter(list(g[v]))))
 
 for node in nodes:
     if color[node] == 'White':
         print("Visiting \n - top level", node)
         #DFS_visit(g, color, depth, finish, parent, node)
         DFS_visit_iter(g, color, depth, finish, parent, node)
+print(depth)
+print(finish)
 
 print("\n[Golden Reference]:")
 print("""list(nx.dfs_edges(g, source="u"))""")
