@@ -45,7 +45,6 @@ def DFS_visit(g, color, depth, finish, parent, node):
   time = time + 1
   finish[node] = time
 
-
 def DFS_visit_iter(g, color, depth, finish, parent, node):
     global time
     time = time + 1
@@ -57,7 +56,7 @@ def DFS_visit_iter(g, color, depth, finish, parent, node):
 
     while stack:
         cur_node = stack[-1][0]
-        children = stack[-1][1]
+        children = stack[-1][1] # iterator across children
         v = next(children, None)
         if v is None:
             time = time + 1
