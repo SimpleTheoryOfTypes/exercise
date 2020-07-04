@@ -77,6 +77,8 @@ def DFS_visit_iter(g, color, depth, finish, parent, node):
             color[cur_node] = 'Black'
             finish[cur_node] = time
             stack.pop()
+            # Insert each vertex to the front of the topo_oder list as it 
+            # finishes.
             topo_order = [cur_node] + topo_order
             continue
 
