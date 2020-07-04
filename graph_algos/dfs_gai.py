@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import networkx as nx
 import matplotlib.pyplot as plt
+from typing import Optional, List
 
 #g = nx.read_adjlist('./sample.graph')
 g = nx.DiGraph()
@@ -65,6 +66,8 @@ def DFS_visit_iter(g, color, depth, finish, parent, node):
     # https://docs.python.org/2/tutorial/datastructures.html#using-lists-as-stacks
     stack = [(node, iter(list(g[node])))] # i.e., (v, adj(v))
 
+    topo_order = []
+
     while stack:
         cur_node = stack[-1][0]
         children = stack[-1][1] # iterator across children
@@ -74,6 +77,7 @@ def DFS_visit_iter(g, color, depth, finish, parent, node):
             color[cur_node] = 'Black'
             finish[cur_node] = time
             stack.pop()
+            topo_order = [cur_node] + topo_order
             continue
 
         if (color[v] == 'White'):
@@ -83,11 +87,14 @@ def DFS_visit_iter(g, color, depth, finish, parent, node):
             color[v] = 'Gray'
             stack.append((v, iter(list(g[v]))))
 
+    return topo_order
+
 for node in nodes:
     if color[node] == 'White':
         print("Visiting \n - top level", node)
-        DFS_visit(g, color, depth, finish, parent, node)
-        #DFS_visit_iter(g, color, depth, finish, parent, node)
+        #DFS_visit(g, color, depth, finish, parent, node)
+        topo_order = DFS_visit_iter(g, color, depth, finish, parent, node)
+        print('Topological order starting at [', node, "] is: \n    ", topo_order)
 print(depth)
 print(finish)
 print(parent)
