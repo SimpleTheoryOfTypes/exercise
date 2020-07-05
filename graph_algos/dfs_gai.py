@@ -102,6 +102,10 @@ def DFS_visit_iter(g, color, depth, finish, parent, node):
             depth[v] = time
             color[v] = 'Gray'
             stack.append((v, iter(list(g[v]))))
+        elif (color[v] == 'Gray'):
+            # Detects a cycle because gray vertices are all ancestors of the
+            # currently explored vertex (i.e., they're on the stack!!).
+            print("WARNING: A cycle is in the graph! Topo order not defined!")
 
     return topo_order
 
