@@ -67,7 +67,6 @@ def DFS_visit_iter(g, color, depth, finish, parent, node):
     stack = [(node, iter(list(g[node])))] # i.e., (v, adj(v))
 
     topo_order = []
-
     while stack:
         cur_node, children = stack[-1]
         v = next(children, None)
