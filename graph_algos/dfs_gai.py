@@ -6,7 +6,7 @@ from typing import Optional, List
 #g = nx.read_adjlist('./sample.graph')
 g = nx.DiGraph()
 
-# Book example
+# Book example 22.4
 #g.add_weighted_edges_from([("u", "v", 0.75), \
 #                           ("v", "y", 0.75), \
 #                           ("y", "x", 0.75), \
@@ -18,13 +18,29 @@ g = nx.DiGraph()
 #                          ])
 
 # Real diamond
-g.add_weighted_edges_from([("u", "x", 0.75), \
-                           ("u", "y", 0.75), \
-                           ("u", "z", 0.75), \
-                           ("x", "y", 0.75), \
-                           ("y", "w", 0.75), \
+#g.add_weighted_edges_from([("u", "x", 0.75), \
+#                           ("u", "y", 0.75), \
+#                           ("u", "z", 0.75), \
+#                           ("x", "y", 0.75), \
+#                           ("y", "w", 0.75), \
+#                           ("z", "w", 0.75), \
+#                          ])
+
+# Book example 22.5(a)
+g.add_weighted_edges_from([("s", "z", 0.75), \
+                           ("s", "w", 0.75), \
+                           ("z", "y", 0.75), \
                            ("z", "w", 0.75), \
+                           ("y", "x", 0.75), \
+                           ("x", "z", 0.75), \
+                           ("w", "x", 0.75), \
+                           ("t", "v", 0.75), \
+                           ("t", "u", 0.75), \
+                           ("v", "s", 0.75), \
+                           ("v", "w", 0.75), \
+                           ("u", "v", 0.75), \
                           ])
+
 
 # Viz Method 1: use matplotlib
 plt.subplot(121)
@@ -75,7 +91,7 @@ def DFS_visit_iter(g, color, depth, finish, parent, node):
             color[cur_node] = 'Black'
             finish[cur_node] = time
             stack.pop()
-            # Insert each vertex to the front of the topo_oder list as it 
+            # Insert each vertex to the front of the topo_oder list as it
             # finishes.
             topo_order = [cur_node] + topo_order
             continue
@@ -95,9 +111,9 @@ for node in nodes:
         #DFS_visit(g, color, depth, finish, parent, node)
         topo_order = DFS_visit_iter(g, color, depth, finish, parent, node)
         print('Topological order starting at [', node, "] is: \n    ", topo_order)
-print(depth)
-print(finish)
-print(parent)
+print("Depth: ", depth)
+print("Finish: ", finish)
+print("Parent: ", parent)
 
 print("\n[Golden Reference]:")
 print("""list(nx.dfs_edges(g, source="u"))""")
