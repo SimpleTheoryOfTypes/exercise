@@ -69,8 +69,7 @@ def DFS_visit_iter(g, color, depth, finish, parent, node):
     topo_order = []
 
     while stack:
-        cur_node = stack[-1][0]
-        children = stack[-1][1] # iterator across children
+        cur_node, children = stack[-1]
         v = next(children, None)
         if v is None:
             time = time + 1
