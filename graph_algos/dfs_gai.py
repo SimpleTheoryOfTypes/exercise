@@ -39,6 +39,7 @@ g.add_weighted_edges_from([("s", "z", 0.75), \
                            ("v", "s", 0.75), \
                            ("v", "w", 0.75), \
                            ("u", "v", 0.75), \
+                           ("u", "t", 0.75), \
                           ])
 
 
@@ -83,6 +84,7 @@ def DFS_visit_iter(g, color, depth, finish, parent, node):
     stack = [(node, iter(list(g[node])))] # i.e., (v, adj(v))
 
     topo_order = []
+    edge_type = {}
     while stack:
         cur_node, children = stack[-1]
         v = next(children, None)
@@ -102,19 +104,24 @@ def DFS_visit_iter(g, color, depth, finish, parent, node):
             depth[v] = time
             color[v] = 'Gray'
             stack.append((v, iter(list(g[v]))))
+            edge_type[cur_node+"->"+v] = "tree edge"
         elif (color[v] == 'Gray'):
             # Detects a cycle because gray vertices are all ancestors of the
             # currently explored vertex (i.e., they're on the stack!!).
             print("WARNING: A cycle is in the graph! Topo order not defined!")
+            edge_type[cur_node+"->"+v] = "back edge"
+        elif (color[v] == 'Black'):
+            edge_type[cur_node+"->"+v] = "forward or cross edge"
 
-    return topo_order
+    return topo_order, edge_type
 
 for node in nodes:
     if color[node] == 'White':
         print("Visiting \n - top level", node)
         #DFS_visit(g, color, depth, finish, parent, node)
-        topo_order = DFS_visit_iter(g, color, depth, finish, parent, node)
+        topo_order, edge_type = DFS_visit_iter(g, color, depth, finish, parent, node)
         print('Topological order starting at [', node, "] is: \n    ", topo_order)
+        print('Edge types: ', edge_type)
 print("Depth: ", depth)
 print("Finish: ", finish)
 print("Parent: ", parent)
