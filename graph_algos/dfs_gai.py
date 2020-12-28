@@ -27,26 +27,36 @@ g = nx.DiGraph()
 #                          ])
 
 # Book example 22.5(a)
-g.add_weighted_edges_from([("s", "z", 0.75), \
-                           ("s", "w", 0.75), \
-                           ("z", "y", 0.75), \
-                           ("z", "w", 0.75), \
-                           ("y", "x", 0.75), \
-                           ("x", "z", 0.75), \
-                           ("w", "x", 0.75), \
-                           ("t", "v", 0.75), \
-                           ("t", "u", 0.75), \
-                           ("v", "s", 0.75), \
-                           ("v", "w", 0.75), \
-                           ("u", "v", 0.75), \
-                           ("u", "t", 0.75), \
+#g.add_weighted_edges_from([("s", "z", 0.75), \
+#                           ("s", "w", 0.75), \
+#                           ("z", "y", 0.75), \
+#                           ("z", "w", 0.75), \
+#                           ("y", "x", 0.75), \
+#                           ("x", "z", 0.75), \
+#                           ("w", "x", 0.75), \
+#                           ("t", "v", 0.75), \
+#                           ("t", "u", 0.75), \
+#                           ("v", "s", 0.75), \
+#                           ("v", "w", 0.75), \
+#                           ("u", "v", 0.75), \
+#                           ("u", "t", 0.75), \
+#                          ])
+
+# Almost a tree to test using Kahn's algorithm for topo sorting.
+g.add_weighted_edges_from([("A", "D", 0.75), \
+                           ("D", "F", 0.75), \
+                           ("B", "E", 0.75), \
+                           ("E", "F", 0.75), \
+                           ("E", "G", 0.75), \
+                           ("C", "G", 0.75), \
+                           ("F", "H", 0.75), \
+                           ("G", "H", 0.75), \
                           ])
 
-
 # Viz Method 1: use matplotlib
-plt.subplot(121)
-nx.draw(g, with_labels=True, font_weight='bold')
-plt.show()
+#plt.subplot(121)
+#nx.draw(g, with_labels=True, font_weight='bold')
+#plt.show()
 
 # Begin DFS
 nodes = g
@@ -114,6 +124,36 @@ def DFS_visit_iter(g, color, depth, finish, parent, node):
             edge_type[cur_node+"->"+v] = "forward or cross edge"
 
     return topo_order, edge_type
+
+def topo_sorting_kahn(g):
+    refCount = {n: g.in_degree(n) for n in g.nodes}
+    print(refCount)
+    nodeStack = list(reversed(sorted([n for n in g.nodes if g.out_degree(n) == 0])))
+    TopoOrdering = []
+    while len(nodeStack) > 0:
+        n = nodeStack.pop()
+        print("(INFO) pop ", n)
+        if refCount[n] == 0:
+            print("(INFO) ", n, " has zero ref count!")
+            TopoOrdering.append(n)
+            for succ in g.successors(n):
+                refCount[succ] -= 1
+                print("(INFO)     decrement successor: ", succ, ", it has ", refCount[succ])
+            print("(INFO) topo ordering so far = ", TopoOrdering)
+        else:
+            nodeStack.append(n)
+            predNodes = list(reversed(sorted([pred for pred in g.predecessors(n) if pred not in TopoOrdering])))
+            nodeStack += predNodes
+            print("(INFO) add ", n, " and predecessors: ", predNodes, " back to nodeStack = ", nodeStack)
+    # Check if all the nodes in g is in the topo ordering.
+    assert len(TopoOrdering) == len(g.nodes)
+    # No duplicated nodes in the topo ordering
+    assert len(set(TopoOrdering)) == len(TopoOrdering)
+
+    return TopoOrdering
+
+
+print(topo_sorting_kahn(g))
 
 for node in nodes:
     if color[node] == 'White':
