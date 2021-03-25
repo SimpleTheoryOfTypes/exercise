@@ -62,6 +62,27 @@ count<head, tail...> {
   static const int value = 1 + count<tail...>::value;
 };
 
+// or_combinator.hs
+//
+template<template<class> class f1, template<class> class f2> struct
+or_combinator {
+    template<class T> struct
+    lambda {
+        static const bool value = f1<T>::value || f2<T>::value;
+    };
+};
+
+template<class T> struct
+isConst {
+  static const int value = false;
+};
+
+template<class U> struct
+isConst<const U> {
+  static const int value = true;
+};
+
+
 int main() {
   std::cout << "[factorial.hs] Factorial of 6 = " << fact<6>::value << "\n";
   std::cout << "[predicate.hs] isPtr<int> = " << isPtr<int>::value
@@ -71,5 +92,10 @@ int main() {
             << "\n";
   std::cout << "[count_list.hs] len of the list of types [int, char, long] = "
             << count<int, char, long>::value << "\n";
+  std::cout << "[or_combinator.hs] or_combinator<isPtr, isConst>::lambda<const int>::value = "
+            << or_combinator<isPtr, isConst>::lambda<int>::value << ","
+            << or_combinator<isPtr, isConst>::lambda<const int>::value << ","
+            << or_combinator<isPtr, isConst>::lambda<int *>::value << ","
+            << std::endl;
   return 0;
 }
