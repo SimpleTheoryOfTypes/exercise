@@ -19,22 +19,22 @@ fact<0> { // specialization for n = 0
 //     is_zero 0 = True
 //     is_zero x = False
 // ghc -o predicate predicate.hs
-template<class T> struct
+template<typename T> struct
 isPtr {
   static const int value = false;
 };
 
-template<class U> struct
+template<typename U> struct
 isPtr<U*> {
   static const int value = true;
 };
 
-template<class U> struct
+template<typename U> struct
 isPtr<U* const> {
     static const bool value = true;
 };
 
-template<class U> struct
+template<typename U> struct
 isPtr<const U*> {
     static const bool value = false;
 };
@@ -64,23 +64,28 @@ count<head, tail...> {
 
 // or_combinator.hs
 //
-template<template<class> class f1, template<class> class f2> struct
+template<template<typename> class f1, template<typename> class f2> struct
 or_combinator {
-    template<class T> struct
+    template<typename T> struct
     lambda {
         static const bool value = f1<T>::value || f2<T>::value;
     };
 };
 
-template<class T> struct
+template<typename T> struct
 isConst {
   static const int value = false;
 };
 
-template<class U> struct
+template<typename U> struct
 isConst<const U> {
   static const int value = true;
 };
+
+// all.hs
+//     all pred [] = True
+//     all pred (head:tail) = (pred head) && (all pred tail)
+// ghs all.hs
 
 
 int main() {
