@@ -63,7 +63,9 @@ count<head, tail...> {
 };
 
 // or_combinator.hs
-//
+//     or_combinator f1 f2 = λ x -> (f1 x) || (f2 x)
+//     (or_combinator is_zero is_one) 2
+// ghc or_combinator.hs
 template<template<typename> class f1, template<typename> class f2> struct
 or_combinator {
     template<typename T> struct
@@ -86,6 +88,18 @@ isConst<const U> {
 //     all pred [] = True
 //     all pred (head:tail) = (pred head) && (all pred tail)
 // ghs all.hs
+template<template<typename> class predicate, typename... list> struct
+all;
+
+template<template<typename> class predicate> struct
+all<predicate> {
+  static const int value = true;
+};
+
+template<template<typename> class predicate, typename head, typename... tail> struct
+all<predicate, head, tail...> {
+  static const int value = predicate<head>::value && all<predicate, tail...>::value;
+};
 
 
 int main() {
@@ -102,5 +116,8 @@ int main() {
             << or_combinator<isPtr, isConst>::lambda<const int>::value << ","
             << or_combinator<isPtr, isConst>::lambda<int *>::value << ","
             << std::endl;
+  std::cout << "[all.hs] all<isPtr, int*, char*, float*>::value = "
+	    << all<isPtr, int*, char*, float*>::value << "; "
+	    << all<isConst, const int*, const char*, float*>::value << std::endl;
   return 0;
 }
