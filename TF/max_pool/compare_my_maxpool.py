@@ -38,7 +38,7 @@ assert np.allclose(tf_output, B, atol=1e-7), "ERROR: numerical mismatch."
 print("[SUCCESS] Tensorflow and my max pool approach matched!")
 
 if True:
-  # Resize bilinear tryout on a real image.
+  # Max Pool tryout on a real image.
   from PIL import Image
   im1 = Image.open("lena.png")
   im1.show()
