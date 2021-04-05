@@ -34,7 +34,7 @@ def my_max_pool(A, ksize, strides, padding="SAME"):
   return B
 
 B = my_max_pool(A, ksize=pw, strides=strides, padding="SAME")
-assert np.allclose(tf_output, B, atol=2), "ERROR: numerical mismatch."
+assert np.allclose(tf_output, B, atol=1e-7), "ERROR: numerical mismatch."
 print("[SUCCESS] Tensorflow and my max pool approach matched!")
 
 if True:
