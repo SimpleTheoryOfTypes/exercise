@@ -40,7 +40,7 @@ def read_data(FileName):
 
   # class labels: 0: 'positive sentiment'; 1: 'negative setiment'.
   # In Pytorch, CrossEntropyLoss expects the labels to be in the
-  # range of [0, #classes).
+  # range of [0, #classes].
   return _docs, np.array(_labels)
 
 train_docs, train_labels = read_data('train.csv')
