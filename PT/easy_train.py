@@ -7,7 +7,7 @@ np.set_printoptions(precision=5)
 torch.set_printoptions(precision=5)
 torch.manual_seed(666)
 
-# hyperparameters
+# Hyperparameters
 lr = 10.0
 num_embeddings = 7
 embedding_dim = 5
