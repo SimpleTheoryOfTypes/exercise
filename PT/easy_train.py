@@ -1,10 +1,14 @@
 import torch
 import numpy as np
 
+np.set_printoptions(suppress=True)
+torch.set_printoptions(sci_mode=False)
+np.set_printoptions(precision=5)
+torch.set_printoptions(precision=5)
 torch.manual_seed(666)
 
 # hyperparameters
-lr = 0.1
+lr = 10.0
 num_embeddings = 7
 embedding_dim = 5
 
@@ -22,7 +26,7 @@ class EasyEmbedding(torch.nn.Module):
     return mse_loss
 
 # prepare inputs
-indices = [0, 2, 5, 6]
+indices = [0, 2, 0, 5]
 y_true = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.5, 0.5, 0.5], [0.0, 0.0, 1.0]]
 pt_model = EasyEmbedding(num_embeddings, embedding_dim)
 
@@ -57,16 +61,15 @@ DLy = 2.0 * diff
 Dye = W
 
 Egrad = np.matmul(DLy, Dye)
-Enew = E[indices] - lr * Egrad
 
-# Write back the updated embeddings.
-count = 0
-for idx in indices:
-  E[idx] = Enew[count]
-  count += 1
+# Update embeddings Enew = E[indices] - lr * Egrad.
+# Note that duplicated indices are summed.
+for count,idx in enumerate(indices):
+  E[idx] -= lr * Egrad[count]
 
-print(Egrad)
-print(E)
+print("======= My Own Numpy Update =========")
+print("Updated E:\n", E)
+print("Updated Egrad:\n", Egrad)
 
 # check loss again.
 X = E[indices]
@@ -78,5 +81,5 @@ print(loss)
 E_train_by_pt = pt_model.embedding.weight.detach().numpy()
 avg_mismatch = np.average(np.abs(E - E_train_by_pt))
 print("avg_mismatch = ", avg_mismatch)
-assert avg_mismatch < 1e-8, "Your numpy implementation does not match PyTorch"
+assert avg_mismatch < 1e-7, "Your numpy implementation does not match PyTorch"
 print("PASS.")
