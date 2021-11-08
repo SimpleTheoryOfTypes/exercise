@@ -1,0 +1,22 @@
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+
+# https://osxdaily.com/2013/02/05/improve-terminal-appearance-mac-os-x/
+export PS1="\[\033[36m\]\u\[\033[m\]@\[\033[32m\]\h:\[\033[33;1m\]\w\[\033[m\]\$ "
+export CLICOLOR=1
+export LSCOLORS=ExFxBxDxCxegedabagacad
+alias ls='ls -GFh'
+
+# git related
+alias ggg='git log --oneline --abbrev-commit --all --graph --decorate --color'
+alias gbb='git branch --all'
+alias gp='grep -rinI --color'
+
+# homebrew
+export PATH=/opt/homebrew/bin:$PATH
+
+# sys
+export PATH=$HOME/sys/bin:$PATH
+export LIBRARY_PATH=$HOME/sys/lib:$LIBRARY_PATH
+export LD_LIBRARY_PATH=$HOME/sys/lib:$LD_LIBRARY_PATH
+
