@@ -1,0 +1,1 @@
+./configure --with-gmp-prefix=/opt/homebrew/
