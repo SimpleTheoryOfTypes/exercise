@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+import sys
+import subprocess
+# result = subprocess.check_call(["ls", "-l"])
+subprocess.check_call(["clang++", "-g", "-std=c++17", sys.argv[1]])
