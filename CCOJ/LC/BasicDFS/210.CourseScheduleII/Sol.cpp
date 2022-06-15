@@ -37,6 +37,7 @@ public:
     std::cout << std::endl;
     DFS(G); 
 
+    // https://stackoverflow.com/questions/1577475/c-sorting-and-keeping-track-of-indexes
     vector<int> idx(numCourses);
     iota(idx.begin(), idx.end(), 0);
     stable_sort(idx.begin(), idx.end(), [this](size_t i1, size_t i2) {return finish[i1] > finish[i2];});
