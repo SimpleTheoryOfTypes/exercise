@@ -2,6 +2,8 @@
 #include <algorithm>
 using namespace std;
 
+// Let f(i) denote the steps it takes to reach the last index from i.
+// f(i) = Min[f(i+s) + 1], for s from 1 to nums[i].
 class Solution {
 public:
     int jump(const vector<int>& nums) {
