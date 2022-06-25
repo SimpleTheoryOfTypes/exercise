@@ -8,8 +8,8 @@ class Solution {
   public:
     int maxProfit(const vector<int>& prices) {
       int profit = 0;
-      int state = 0;
-      dfs(state, profit, 0, prices);
+      int prevState = 0;
+      dfs(prevState, profit, 0, prices);
       printVector(possibleProfits);
       return *max_element(possibleProfits.begin(), possibleProfits.end());
     }
@@ -21,41 +21,49 @@ class Solution {
       std::cout << std::endl;
     }
 
-    void dfs(int &state, int &profit, int index, const vector<int>& prices) {
+    // prevState:
+    //   0: initial state (can buy or cool down).
+    //   1: buy state (next state is sell or cool down).
+    //   2: sell state (next state: must cool down)
+    //   3: sell state (already had a cool down, next state: can be buy or cool down).
+    // index: on the current day.
+    // Given a previous state, at the current day pointing by the index, we need to
+    // traverse down the search tree to update profit.
+    void dfs(int &prevState, int &profit, int index, const vector<int>& prices) {
       if (index >= prices.size()) {
         possibleProfits.push_back(profit);
         return;
       }
 
-      if (state == 0) {
+      if (prevState == 0) {
         profit -= prices[index]; 
-        state = 1; // BUY
-        dfs(state, profit, index + 1, prices);
-        state = 0;
+        prevState = 1; // BUY
+        dfs(prevState, profit, index + 1, prices);
+        prevState = 0;
         profit += prices[index];
 
-        dfs(state, profit, index + 1, prices);
-      } else if (state == 1) {
-        dfs(state, profit, index + 1, prices);
+        dfs(prevState, profit, index + 1, prices);
+      } else if (prevState == 1) {
+        dfs(prevState, profit, index + 1, prices);
 
         profit += prices[index];
-        state = 2; // SELL
-        dfs(state, profit, index + 1, prices);
-        state = 1;
+        prevState = 2; // SELL
+        dfs(prevState, profit, index + 1, prices);
+        prevState = 1;
         profit -= prices[index];
-      } else if (state == 2) {
-        state = 3;//cool down, so skip at index.
-        dfs(state, profit, index + 1, prices);
-      } else if (state == 3) {
+      } else if (prevState == 2) {
+        prevState = 3;//cool down, so skip at index.
+        dfs(prevState, profit, index + 1, prices);
+      } else if (prevState == 3) {
         profit -= prices[index];
-        state = 1; // BUY
-        dfs(state, profit, index + 1, prices);// must have a cool down after sell, so skip index to index + 1.
-        state = 3;
+        prevState = 1; // BUY
+        dfs(prevState, profit, index + 1, prices);// must have a cool down after sell, so skip index to index + 1.
+        prevState = 3;
         profit += prices[index];
 
-        dfs(state, profit, index + 1, prices);
+        dfs(prevState, profit, index + 1, prices);
       } else {
-        assert(false && "Unknown state.");
+        assert(false && "Unknown prevState.");
       }
     }
 };
