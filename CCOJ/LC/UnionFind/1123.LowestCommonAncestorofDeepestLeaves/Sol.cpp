@@ -140,6 +140,8 @@ public:
 
       color[u] = 2;//BLACK
 
+
+
       if (u == thePair.first) {
         if (color[thePair.second] == 2) {
           ans = FindSet(t2n[thePair.second])->tnp;
