@@ -12,6 +12,11 @@ class Solution {
       if (nums.size() == 1)
         return nums[0];
 
+      // dpMax[i] is the max product continguous array up to index i:
+      // It is the max of these three numbers:
+      //   1. dpMin[i-1] * nums[i];
+      //   2. nums[i];
+      //   3. dpMax[i-1] * nums[i].
       vector<int> dpMax(nums.size(), INT_MIN);
       vector<int> dpMin(nums.size(), INT_MAX);
 
