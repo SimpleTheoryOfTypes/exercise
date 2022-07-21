@@ -15,6 +15,8 @@ public:
       nrows = grid.size();
       ncols = grid[0].size();
 
+      // Push all rotting oranges on Q, and do parallel BFS among them, recording the current breadth along the way.
+      // The Final breadth is the anser.
       vector<int> discovers;
       deque<pair<int, int>> Q;
       for (int r = 0; r < nrows; r++) {
