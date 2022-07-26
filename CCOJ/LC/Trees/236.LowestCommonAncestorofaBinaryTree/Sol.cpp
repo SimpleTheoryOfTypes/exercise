@@ -1,85 +1,40 @@
-#include <vector>
-#include <iostream>
-#include <map>
-using namespace std;
-
-struct TreeNode {
-  int val;
-  TreeNode *left;
-  TreeNode *right;
-  TreeNode(int x) : val(x), left(NULL), right(NULL) {}
-};
-
 class Solution {
-  int index = 0;
-  map<TreeNode*, int> tourIndex;
-  map<int, TreeNode*> tourIndex2Node;
-  map<int, int> depth;
-  public:
+public:
     TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
-      if (!root)
-        return nullptr;
+      vector<TreeNode *> pathTop;
+      vector<TreeNode *> pathToq;
+      vector<TreeNode *> path;
 
-      dfs(root, 0);
-      TreeNode *ans;
+      path.clear();
+      dfs(root, p, path, pathTop);
 
-      int startIndex = min(tourIndex[p], tourIndex[q]);
-      int endIndex = max(tourIndex[p], tourIndex[q]);
-      int minDepth = INT_MAX;
-      int minDepthIndex = -1;
-      for (int i = startIndex; i <= endIndex; i++) {
-        if (minDepth > depth[i]) {
-          minDepth = depth[i];
-          minDepthIndex = i;
+      path.clear();
+      dfs(root, q, path, pathToq);
+
+      int lcaIndex = -1;
+      for (int i = 0, j = 0; i < pathTop.size() && j < pathToq.size(); i++, j++) {
+        if (pathTop[i] == pathToq[j]) {
+          lcaIndex = i;
         }
       }
-      
-      ans = tourIndex2Node[minDepthIndex];
-      return ans;
+      return pathToq[lcaIndex < 0 ? 0 : lcaIndex];
     }
 
-    // Euler tour: https://www.youtube.com/watch?v=sD1IoalFomA
-    void dfs(TreeNode *n, int Depth) {
+    void dfs(TreeNode *n, TreeNode *target, vector<TreeNode *> &path, vector<TreeNode *> &foundPath) {
       if (n == nullptr)
         return;
 
-      visit(n, Depth);
-      if (n->left) {
-        dfs(n->left, Depth + 1);
-        visit(n, Depth);
+      path.push_back(n);
+      if (n == target) {
+        foundPath = path;
+        return;
       }
 
-      if (n->right) {
-        dfs(n->right, Depth + 1);
-        visit(n, Depth);
-      }
-    }
+      dfs(n->left, target, path, foundPath);
+      path.erase(path.end() - 1);
 
-    void visit(TreeNode *n, int Depth) {
-      tourIndex[n] = index;
-      tourIndex2Node[index] = n;
-      depth[index] = Depth;
-      index += 1;
+      path.push_back(n);
+      dfs(n->right, target, path, foundPath);
+      path.erase(path.end() - 1);
     }
-
 };
-
-TreeNode* buildTree() {
-  TreeNode* node1 = new TreeNode(1);
-  TreeNode* node2 = new TreeNode(2);
-  TreeNode* node3 = new TreeNode(3);
-  TreeNode* node4 = new TreeNode(4);
-
-  node1->left = node2;
-  node1->right = node3;
-  node2->right = node4;
-
-  return node1;
-}
-
-int main() {
-  auto sol = Solution();
-  auto *root = buildTree();
-  auto ans = sol.lowestCommonAncestor(root, root, root);
-  return 0;
-}
