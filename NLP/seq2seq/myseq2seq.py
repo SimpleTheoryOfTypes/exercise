@@ -1,8 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
-
-# In[3]:
-
 
 import torch
 import torch.nn as nn
@@ -15,9 +11,6 @@ import random, math, time
 import numpy as np
 
 
-# In[4]:
-
-
 SRC_LANGUAGE = 'de'
 TGT_LANGUAGE = 'en'
 train, valid, test = multi30k.Multi30k("./", split=("train", "valid", "test"), language_pair=(SRC_LANGUAGE, TGT_LANGUAGE))
@@ -25,15 +18,14 @@ iter1 = iter(train)
 print("Sample train sentence pair: ", next(iter1))
 iter2 = iter(valid)
 print("Sample Validation sentence pair: ", next(iter2))
-#for data_iter in train:
-#    print("Next Validation sentence pair: ", data_iter)
-#print(f"Number of training examples = ", len(list(train)))
-#print(f"Number of validation examples = ", len(list(valid)))
+
+for data_iter in train:
+  print("Next Validation sentence pair: ", data_iter)
+  break
+
+print(f"Number of training examples = ", len(list(train)))
+print(f"Number of validation examples = ", len(list(valid)))
 #print(f"Number of test examples = ", len(list(test)))
-
-
-# In[5]:
-
 
 token_transform = {}
 vocab_transform = {}
@@ -43,10 +35,6 @@ def yield_tokens(data_iter: Iterable, language: str) -> List[str]:
     language_index = {SRC_LANGUAGE: 0, TGT_LANGUAGE: 1}
     for data_sample in data_iter:
         yield token_transform[language](data_sample[language_index[language]])
-
-
-# In[6]:
-
 
 # Define special symbols and indices
 UNK_IDX, PAD_IDX, BOS_IDX, EOS_IDX = 0, 1, 2, 3
@@ -60,6 +48,7 @@ for ln in [SRC_LANGUAGE, TGT_LANGUAGE]:
                                                     min_freq=1,
                                                     specials=special_symbols,
                                                     special_first=True)
+
 # Set ``UNK_IDX`` as the default index. The index is returned when the token is not found.
 # If not set, it throws ``RuntimeError`` when the queried token is not found in the Vocabulary.
 for ln in [SRC_LANGUAGE, TGT_LANGUAGE]:
@@ -71,8 +60,6 @@ print("vocab_transform size (EN) = ", vocab_transform['en'].vocab.__len__())
 print("the 678th DE token is ", vocab_transform['de'].vocab.lookup_token(678))
 print("the 678th EN token is ", vocab_transform['en'].vocab.lookup_token(678))
 
-
-# In[7]:
 
 class Encoder(nn.Module):
     def __init__(self, input_dim, emb_dim, hid_dim, n_layers, dropout):
@@ -194,34 +181,27 @@ class Seq2seq(nn.Module):
         return outputs
 
 
-# In[8]:
-
-
 INPUT_DIM = len(vocab_transform[SRC_LANGUAGE].vocab)
 OUTPUT_DIM = len(vocab_transform[TGT_LANGUAGE].vocab)
-ENC_EMB_DIM = 256
-DEC_EMB_DIM = 256
-HID_DIM = 512
-N_LAYERS = 1
-ENC_DROPOUT = 0.05
-DEC_DROPOUT = 0.05
+ENC_EMB_DIM = 512
+DEC_EMB_DIM = 512
+HID_DIM = 1024
+N_LAYERS = 4
+ENC_DROPOUT = 0.5
+DEC_DROPOUT = 0.5
+
 enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
-print(enc)
 dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
-print(dec)
 
 
-# In[9]:
-
-
+# top-like gpu utility check: nvidia-smi -l 1
 #assert torch.cuda.is_available(), "No CUDA found on your machine."
-#print("Training on this device: ", torch.cuda.get_device_name(0))
+if torch.cuda.is_available():
+  print("Training on this device: ", torch.cuda.get_device_name(0))
+else:
+  print("Training on CPU")
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = Seq2seq(enc, dec, device).to(device)
-
-
-# In[10]:
-
 
 def init_weights(m):
     for name, param in m.named_parameters():
@@ -230,10 +210,7 @@ def init_weights(m):
 model.apply(init_weights)
 
 
-# In[11]:
-
-
-# Testing the model forward flow
+### Testing the model forward flow
 # Test tokenizer: input should be a list of words
 def sample_data(input_sentences: List[Tuple[str]]):
     print(input_sentences[0])
@@ -241,43 +218,44 @@ def sample_data(input_sentences: List[Tuple[str]]):
     sample_dst = [x[1].strip().split() for x in input_sentences]
     return sample_src, sample_dst
 
-sample_de, sample_en = sample_data(list(train)[0:1])
-print(sample_de[0])
-print(sample_en[0])
+sample_de, sample_en = sample_data(list(train)[615:616])
 
 x = []
+x_toks = []
 for sample in sample_de:
-    x.append(vocab_transform['de'](sample))
+    t0 = [BOS_IDX] + vocab_transform['de'](sample) + [EOS_IDX]
+    x.append(t0)
+    x_toks.append([vocab_transform['de'].vocab.lookup_token(t) for t in t0])
+
 y = []
+y_toks = []
 for sample in sample_en:
-    y.append(vocab_transform['en'](sample))
+    t0 = [BOS_IDX] + vocab_transform['en'](sample) + [EOS_IDX]
+    y.append(t0)
+    y_toks.append([vocab_transform['en'].vocab.lookup_token(t) for t in t0])
+
 print("x = ", x)
 print("y = ", y)
+print("x_toks = ", x_toks)
+print("y_toks = ", y_toks)
 
-# In[12]:
-
-
-print(torch.tensor(y).shape)
-paul = model(torch.tensor(x).to(device), torch.tensor(y).to(device), 0.5)
-import pdb; pdb.set_trace()
-#paul = enc(torch.tensor(x).to(device))
-print("sample model output shape = ", paul.shape)
-
-sample_output_npy = paul.numpy().flatten()
-print("sample output max = ", np.max(sample_output_npy))
-print("sample output min = ", np.min(sample_output_npy))
-
-
-
-
-# In[13]:
-
+tx_len = len(x[0]) # model assumes input is [seq len, batch size]
+ty_len = len(y[0])
+tx = torch.tensor(x).reshape(tx_len, 1)
+ty = torch.tensor(y).reshape(ty_len, 1)
+sample_output = model(tx.to(device), ty.to(device), 0.5)
+predict_tokids = torch.argmax(sample_output, dim=-1).flatten()
+predict_toks = []
+for ptid in predict_tokids:
+  predict_toks.append(vocab_transform['en'].vocab.lookup_token(ptid))
+print("initial model predicted toks = ", predict_toks)
 
 """
 Preparing data:
 https://colab.research.google.com/github/pytorch/tutorials/blob/gh-pages/_downloads/transformer_tutorial.ipynb
 """
 from torch.nn.utils.rnn import pad_sequence
+
 #helper function to club together sequential operations
 def sequential_transforms(*transforms):
     def func(txt_input):
@@ -312,26 +290,18 @@ from torch.utils.data import DataLoader
 BATCH_SIZE = 128
 #print(len(train_iter))
 train_dataloader = DataLoader(train_iter, batch_size=BATCH_SIZE, collate_fn=collate_fn)
-print(train_dataloader.__str__())
-for src, tgt in train_dataloader:
-     print(src.shape)
-     print(tgt.shape)
-     print(src[:,123])
-     print(tgt[:,123])
-     break
-
-import pdb; pdb.set_trace()
-# In[14]:
-
+#print(train_dataloader.__str__())
+#for src, tgt in train_dataloader:
+#     print(src.shape)
+#     print(tgt.shape)
+#     print(src[:,123])
+#     print(tgt[:,123])
+#     break
 
 def count_parameters(model):
-    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+  return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 print(f'The model has {count_parameters(model):,} trainable parameters')
-
-
-# In[15]:
-
 
 optimizer = optim.Adam(model.parameters())
 criterion = nn.CrossEntropyLoss(ignore_index=PAD_IDX)
@@ -361,7 +331,7 @@ def train(model, iterator, optimizer, criterion, clip):
         torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
         optimizer.step()
         epoch_loss += loss.item()
-        numTrainDataPoints += iterator.batch_size
+        numTrainDataPoints += 1 #iterator.batch_size
         # print("local loss = ", epoch_loss)
     
     return epoch_loss / numTrainDataPoints
@@ -390,7 +360,7 @@ def evaluate(model, iterator, criterion):
             loss = criterion(output, trg)
             
             epoch_loss += loss.item()
-            numEvalDataPoints += iterator.batch_size
+            numEvalDataPoints += 1 #iterator.batch_size
             
     return epoch_loss / numEvalDataPoints
 
@@ -400,11 +370,7 @@ def epoch_time(start_time, end_time):
     elapsed_secs = int(elapsed_time - (elapsed_mins * 60))
     return elapsed_mins, elapsed_secs
 
-
-# In[ ]:
-
-
-N_EPOCHS = 10
+N_EPOCHS = 300
 CLIP = 1
 best_valid_loss = float('inf')
 for epoch in range(N_EPOCHS):
@@ -423,17 +389,12 @@ for epoch in range(N_EPOCHS):
     print(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
     print(f'\tValid Loss: {valid_loss:.3f} | Valid PPL: {math.exp(valid_loss):7.3f}')
 
-
-# In[ ]:
-
-
-# TODO my eval
-
-
-# In[ ]:
-
-
-for name, param in model.named_parameters():
-    print(name)
-    print(param.data.shape)
+    # check the sample translation after each training epoch
+    paul = model(tx.to(device), ty.to(device), 0.0)
+    predict_tokids = torch.argmax(paul, dim=-1).flatten()
+    predict_toks = []
+    for ptid in predict_tokids:
+      predict_toks.append(vocab_transform['en'].vocab.lookup_token(ptid))
+    print("[GOLD TRANSLATION] = ", y_toks)
+    print("model translation = ", predict_toks)
 
