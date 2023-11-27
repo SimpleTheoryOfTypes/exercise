@@ -477,46 +477,46 @@ def init_weights(m):
 model.apply(init_weights)
 
 
-if False:
-         ### Testing the model forward flow
-         # Test tokenizer: input should be a list of words
-         def sample_data(input_sentences: List[Tuple[str]]):
-             print(input_sentences[0])
-             sample_src = [x[0].strip().split() for x in input_sentences]
-             sample_dst = [x[1].strip().split() for x in input_sentences]
-             return sample_src, sample_dst
-         
-         sample_de, sample_en = sample_data(list(train)[615:616])
-         
-         x = []
-         x_toks = []
-         for sample in sample_de:
-             t0 = [BOS_IDX] + vocab_transform['de'](sample) + [EOS_IDX]
-             x.append(t0)
-             x_toks.append([vocab_transform['de'].vocab.lookup_token(t) for t in t0])
-         
-         y = []
-         y_toks = []
-         for sample in sample_en:
-             t0 = [BOS_IDX] + vocab_transform['en'](sample) + [EOS_IDX]
-             y.append(t0)
-             y_toks.append([vocab_transform['en'].vocab.lookup_token(t) for t in t0])
-         
-         print("x = ", x)
-         print("y = ", y)
-         print("x_toks = ", x_toks)
-         print("y_toks = ", y_toks)
-         
-         tx_len = len(x[0]) # model assumes input is [seq len, batch size]
-         ty_len = len(y[0])
-         tx = torch.tensor(x).reshape(tx_len, 1)
-         ty = torch.tensor(y).reshape(ty_len, 1)
-         sample_output = model(tx.to(device), ty.to(device), 0.5)
-         predict_tokids = torch.argmax(sample_output, dim=-1).flatten()
-         predict_toks = []
-         for ptid in predict_tokids:
-           predict_toks.append(vocab_transform['en'].vocab.lookup_token(ptid))
-         print("initial model predicted toks = ", predict_toks)
+"""
+Testing the model forward flow
+"""
+def sample_data(input_sentences: List[Tuple[str]]):
+    print(input_sentences[0])
+    sample_src = [x[0].strip().split() for x in input_sentences]
+    sample_dst = [x[1].strip().split() for x in input_sentences]
+    return sample_src, sample_dst
+
+sample_de, sample_en = sample_data(list(train)[615:616])
+
+x = []
+x_toks = []
+for sample in sample_de:
+    t0 = [BOS_IDX] + vocab_transform['de'](sample) + [EOS_IDX]
+    x.append(t0)
+    x_toks.append([vocab_transform['de'].vocab.lookup_token(t) for t in t0])
+
+y = []
+y_toks = []
+for sample in sample_en:
+    t0 = [BOS_IDX] + vocab_transform['en'](sample) + [EOS_IDX]
+    y.append(t0)
+    y_toks.append([vocab_transform['en'].vocab.lookup_token(t) for t in t0])
+
+print("x = ", x)
+print("y = ", y)
+print("x_toks = ", x_toks)
+print("y_toks = ", y_toks)
+
+tx_len = len(x[0])
+ty_len = len(y[0])
+tx = torch.tensor(x)
+ty = torch.tensor(y)
+sample_output, _attention = model(tx.to(device), ty.to(device))
+predict_tokids = torch.argmax(sample_output, dim=-1).flatten()
+predict_toks = []
+for ptid in predict_tokids:
+  predict_toks.append(vocab_transform['en'].vocab.lookup_token(ptid))
+print("initial model predicted toks = ", predict_toks)
 
 """
 Preparing data:
@@ -688,4 +688,13 @@ for epoch in range(N_EPOCHS):
     print(f'Epoch: {epoch+1:02} | Time: {epoch_mins}m {epoch_secs}s')
     print(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
     print(f'\t Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}')
+
+    # check the sample translation after each training epoch
+    paul, attention_ = model(tx.to(device), ty.to(device), 0.0)
+    predict_tokids = torch.argmax(paul, dim=-1).flatten()
+    predict_toks = []
+    for ptid in predict_tokids:
+      predict_toks.append(vocab_transform['en'].vocab.lookup_token(ptid))
+    print("[GOLD TRANSLATION] = ", y_toks)
+    print("model translation = ", predict_toks)
 
