@@ -690,7 +690,7 @@ for epoch in range(N_EPOCHS):
     print(f'\t Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}')
 
     # check the sample translation after each training epoch
-    paul, attention_ = model(tx.to(device), ty.to(device), 0.0)
+    paul, attention_ = model(tx.to(device), ty.to(device))
     predict_tokids = torch.argmax(paul, dim=-1).flatten()
     predict_toks = []
     for ptid in predict_tokids:
