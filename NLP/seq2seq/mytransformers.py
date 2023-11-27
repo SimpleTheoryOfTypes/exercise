@@ -585,6 +585,7 @@ def train(model, iterator, optimizer, criterion, clip):
     
     epoch_loss = 0
     
+    numTrainDataPoints = 0
     for i, batch in enumerate(iterator):
         
         src = batch[0].to(device)
@@ -617,8 +618,9 @@ def train(model, iterator, optimizer, criterion, clip):
         optimizer.step()
         
         epoch_loss += loss.item()
+        numTrainDataPoints += 1 #iterator.batch_size
         
-    return epoch_loss / len(iterator)
+    return epoch_loss / numTrainDataPoints
 
 def evaluate(model, iterator, criterion):
     
@@ -628,10 +630,14 @@ def evaluate(model, iterator, criterion):
     
     with torch.no_grad():
     
+        numTrainDataPoints = 0
         for i, batch in enumerate(iterator):
 
             src = batch.src
             trg = batch.trg
+
+            src = torch.transpose(src, 0, 1)
+            trg = torch.transpose(trg, 0, 1)
 
             output, _ = model(src, trg[:,:-1])
             
@@ -649,8 +655,9 @@ def evaluate(model, iterator, criterion):
             loss = criterion(output, trg)
 
             epoch_loss += loss.item()
+            numTrainDataPoints += 1 #iterator.batch_size
         
-    return epoch_loss / len(iterator)
+    return epoch_loss / numTrainDataPoints
 
 def epoch_time(start_time, end_time):
     elapsed_time = end_time - start_time
