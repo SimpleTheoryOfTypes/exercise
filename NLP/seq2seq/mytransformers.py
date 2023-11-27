@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torchtext.datasets import multi30k
-from torchtext.vocab import build_vocab_from_iterator
+from torchtext.vocab import build_vocab_from_iterator, Vocab
 from torchtext.data.utils import get_tokenizer
 from typing import Tuple, List, Iterable, List
 import random, math, time
@@ -518,6 +518,79 @@ for ptid in predict_tokids:
   predict_toks.append(vocab_transform['en'].vocab.lookup_token(ptid))
 print("initial model predicted toks = ", predict_toks)
 
+def translate_sentence(sentence, src_field: Vocab, trg_field, model, device, max_len = 50):
+  model.eval()
+
+  if isinstance(sentence, str):
+      # nlp = spacy.load('de_core_news_sm')
+      #tokens = [token.text.lower() for token in nlp(sentence)]
+      #FIXME(lambda!!!!): should we lower cases here?
+      #tokens = [token.text.lower() for token in token_transform[SRC_LANGUAGE](sentence)]
+      tokens = [token for token in token_transform[SRC_LANGUAGE](sentence)]
+  else:
+      #FIXME(lambda!!!!): should we lower cases here?
+      #tokens = [token.lower() for token in sentence]
+      tokens = [token for token in sentence]
+
+  # the input sentence has already been collated to start with '<bos>' and end with '<eos>'.
+  tokens = ['<bos>'] + tokens + ['<eos>']
+  src_indexes = [src_field.vocab.get_stoi()[token] for token in tokens]
+  src_tensor = torch.LongTensor(src_indexes).unsqueeze(0).to(device)
+  src_mask = model.make_src_mask(src_tensor)
+  
+  with torch.no_grad():
+      enc_src = model.encoder(src_tensor, src_mask)
+
+  #trg_indexes = [trg_field.vocab.get_stoi()[trg_field.init_token]]
+  trg_indexes = [trg_field.vocab.get_stoi()['<bos>']]
+
+  for i in range(max_len):
+    trg_tensor = torch.LongTensor(trg_indexes).unsqueeze(0).to(device)
+    trg_mask = model.make_trg_mask(trg_tensor)
+    with torch.no_grad():
+      output, attention = model.decoder(trg_tensor, enc_src, trg_mask, src_mask)
+    pred_token = output.argmax(2)[:,-1].item()
+    trg_indexes.append(pred_token)
+
+    if pred_token == trg_field.vocab.get_stoi()['<eos>']:
+      break
+  
+  trg_tokens = [trg_field.vocab.get_itos()[i] for i in trg_indexes]
+  return trg_tokens[1:], attention
+
+src_sentence = x_toks[0]
+translation, attention = translate_sentence(sentence=src_sentence, \
+                                            src_field=vocab_transform['de'], \
+                                            trg_field=vocab_transform['en'], \
+                                            model=model, \
+                                            device=device)
+print(f'predicted trg = {translation}')
+
+from torchtext.data.metrics import bleu_score
+
+def calculate_bleu(data, src_field, trg_field, model, device, max_len = 50):
+    
+    trgs = []
+    pred_trgs = []
+    
+    for datum in data:
+        
+        src = datum[0]
+        trg = datum[1]
+        
+        pred_trg, _ = translate_sentence(src, src_field, trg_field, model, device, max_len)
+        
+        #cut off <eos> token
+        pred_trg = pred_trg[:-1]
+        
+        pred_trgs.append(pred_trg)
+        trgs.append([trg])
+        
+    return bleu_score(pred_trgs, trgs)
+
+bleu_score = calculate_bleu(train_iter, vocab_transform['de'], vocab_transform['en'], model, device)
+print(f'BLEU score = {bleu_score*100:.2f}')
+
 """
 Preparing data:
 https://colab.research.google.com/github/pytorch/tutorials/blob/gh-pages/_downloads/transformer_tutorial.ipynb
@@ -542,14 +615,14 @@ for ln in [SRC_LANGUAGE, TGT_LANGUAGE]:
     text_transform[ln] = sequential_transforms(token_transform[ln], # Tokenization
                                                vocab_transform[ln], # Numericalization
                                                tensor_transform) # Add BOS/EOS and create tensor
-    
+
 # function to collate data samples into batch tensors
 def collate_fn(batch):
     src_batch, tgt_batch = [], []
     for src_sample, tgt_sample in batch:
         src_batch.append(text_transform[SRC_LANGUAGE](src_sample.rstrip("\n")))
         tgt_batch.append(text_transform[TGT_LANGUAGE](tgt_sample.rstrip("\n")))
-        
+
     src_batch = pad_sequence(src_batch, padding_value=PAD_IDX)
     tgt_batch = pad_sequence(tgt_batch, padding_value=PAD_IDX)
     return src_batch, tgt_batch
@@ -580,39 +653,34 @@ LEARNING_RATE = 0.0005
 optimizer = torch.optim.Adam(model.parameters(), lr = LEARNING_RATE)
 criterion = nn.CrossEntropyLoss(ignore_index = TRG_PAD_IDX)
 def train(model, iterator, optimizer, criterion, clip):
-    
     model.train()
-    
     epoch_loss = 0
-    
     numTrainDataPoints = 0
     for i, batch in enumerate(iterator):
-        
         src = batch[0].to(device)
         trg = batch[1].to(device)
 
         src = torch.transpose(src, 0, 1)
         trg = torch.transpose(trg, 0, 1)
-        
+
         optimizer.zero_grad()
-        
         output, _ = model(src, trg[:,:-1])
-                
+
         #output = [batch size, trg len - 1, output dim]
         #trg = [batch size, trg len]
-            
+
         output_dim = output.shape[-1]
-            
+
         output = output.contiguous().view(-1, output_dim)
         trg = trg[:,1:].contiguous().view(-1)
-                
+
         #output = [batch size * trg len - 1, output dim]
         #trg = [batch size * trg len - 1]
-            
+
         loss = criterion(output, trg)
-        
+
         loss.backward()
-        
+
         torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
         
         optimizer.step()
@@ -665,7 +733,7 @@ def epoch_time(start_time, end_time):
     elapsed_secs = int(elapsed_time - (elapsed_mins * 60))
     return elapsed_mins, elapsed_secs
 
-N_EPOCHS = 10
+N_EPOCHS = 30
 CLIP = 1
 
 best_valid_loss = float('inf')
@@ -698,3 +766,9 @@ for epoch in range(N_EPOCHS):
     print("[GOLD TRANSLATION] = ", y_toks)
     print("model translation = ", predict_toks)
 
+model.load_state_dict(torch.load('tut6-model.pt'))
+test_loss = evaluate(model, train_dataloader, criterion)
+print(f'| Test Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f} |')
+
+bleu_score = calculate_bleu(train_iter, vocab_transform['de'], vocab_transform['en'], model, device)
+print(f'BLEU score = {bleu_score*100:.2f}')
