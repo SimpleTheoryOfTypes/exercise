@@ -633,8 +633,8 @@ def evaluate(model, iterator, criterion):
         numTrainDataPoints = 0
         for i, batch in enumerate(iterator):
 
-            src = batch.src
-            trg = batch.trg
+            src = batch[0].to(device)
+            trg = batch[1].to(device)
 
             src = torch.transpose(src, 0, 1)
             trg = torch.transpose(trg, 0, 1)
