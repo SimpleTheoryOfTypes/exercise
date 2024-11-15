@@ -1,0 +1,24 @@
+ISL installation on Mac:
+
+1. changes in autogen.sh 
+  jiadinggai@Jiadings-MacBook-Air:~/dev/MISC/ISL/isl$ git diff
+  diff --git a/gai_drive.sh b/gai_drive.sh
+  index 3a26d6d9..6ddf84c5 100644
+  --- a/gai_drive.sh
+  +++ b/gai_drive.sh
+  @@ -2,6 +2,6 @@
+   # Prerequisite: xcode, automake, LLVM50
+   # export PATH=$PATH:$HOME/dev/LLVM/llvm-project/build/bin
+   ./autogen.sh
+  -./configure CPPFLAGS=-I/opt/homebrew/include LDFLAGS=-L/opt/homebrew/lib/ --with-sysroot=/Library//Developer/CommandLineTools/SDKs/MacOSX11.3.sdk/
+  +CC=clang CXX=clang++ ./configure CPPFLAGS=-I/opt/homebrew/include LDFLAGS=-L/opt/homebrew/lib/ --with-sysroot=/Library//Developer/CommandLineTools/SDKs/MacOSX11.3.sdk/
+   make; make check
+
+2. be explicit about the gmp dir
+./configure --with-gmp-prefix=/opt/homebrew/
+
+PET installation on Mac:
+
+1. 
+
+./configure --with-clang-prefix=/Users/jiadinggai/dev/LLVM//LLVM11.1.0/install/ --with-gmp-prefix=/opt/homebrew/
