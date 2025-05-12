@@ -162,15 +162,6 @@ for epoch in range(NUM_EPOCHS):
         input_texts = tokenizer.batch_decode(input_ids, skip_special_tokens=True)
 
         # 2. Calculate Rewards (r(x,y))
-        #target_texts = []
-        #for i in range(len(input_ids)):
-        #    #  i is the batch index (0, 1, ..., BATCH_SIZE-1)
-        #    original_dataset_index = batch["input_ids"][i][0].item()
-        #    try:
-        #        target_texts.append(dataset[original_dataset_index]["answer"])
-        #    except IndexError:
-        #        import pdb; pdb.set_trace()
-
         batch_rewards = []
         target_texts = batch["answer"]
         for i in range(len(generated_texts)):
