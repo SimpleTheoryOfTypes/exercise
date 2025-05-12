@@ -163,6 +163,7 @@ def get_reward2(model_output, target_string):
     # import difflib
     # sm = difflib.SequenceMatcher(None, model_output, target_string)
     # sim_reward = sm.ratio() / 100.0
+    sim_reward = 0.0 
 
 
     print(f"    {count_xml_r1=}")
@@ -170,7 +171,7 @@ def get_reward2(model_output, target_string):
     print(f"    {strict_format_reward=}")
     print(f"    {int_reward=}")
     print(f"    {correctness_reward=}")
-    print("Similarity:", sm.ratio())
+    print(f"    {sim_reward=}")
 
     return count_xml_r1 + soft_format_reward + strict_format_reward + int_reward + correctness_reward + sim_reward
 
@@ -235,7 +236,7 @@ for epoch in range(NUM_EPOCHS):
         outputs = model.generate(
             input_ids=input_ids,
             attention_mask=attention_mask,
-            max_new_tokens=100,  # Use max_new_tokens instead of max_length
+            max_new_tokens=1024,  # Use max_new_tokens instead of max_length
             num_return_sequences=1,  # Generate only one sequence per input
             do_sample=True,  # Sample
             top_k=0,
