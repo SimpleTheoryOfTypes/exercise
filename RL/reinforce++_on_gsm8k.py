@@ -7,6 +7,7 @@ from tqdm import tqdm
 import re
 import matplotlib.pyplot as plt
 
+# Reference: https://gist.github.com/willccbb/4676755236bb08cab5f4e54a0475d6fb
 # Configuration
 # MODEL_NAME = "EleutherAI/gpt-neo-125M"  # Use a small, readily available model
 MODEL_NAME = "Qwen/Qwen2.5-0.5B-Instruct"  # Use a small, readily available model
