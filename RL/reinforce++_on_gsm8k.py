@@ -21,7 +21,7 @@ NUM_EPOCHS = 3
 CLIP_EPSILON = 0.2
 SEED = 42
 MAX_LENGTH = 512
-TRAIN_PERCENT = 0.1  # 10% of the training data
+TRAIN_PERCENT = 0.2  # 10% of the training data
 
 # Set seed for reproducibility
 np.random.seed(SEED)
@@ -46,6 +46,51 @@ def preprocess_function(examples):
     inputs["labels"] = inputs["input_ids"].clone()  # Important for the model
     return inputs
 
+def extract_hash_answer(text: str) -> str | None:
+    if "####" not in text:
+        return None
+    return text.split("####")[1].strip().replace(",", "").replace("$", "")
+
+def strict_format_reward_func(responses, **kwargs) -> list[float]:
+    """Reward function that checks if the completion has a specific format."""
+    pattern = r"^<reasoning>\n.*?\n</reasoning>\n<answer>\n.*?\n</answer>\n$"
+    matches = [re.match(pattern, r, flags=re.DOTALL) for r in responses]
+    return [0.5 if match else 0.0 for match in matches]
+
+def soft_format_reward_func(responses, **kwargs) -> list[float]:
+    """Reward function that checks if the completion has a specific format."""
+    pattern = r"<reasoning>.*?</reasoning>\s*<answer>.*?</answer>"
+    # responses = [completion[0]["content"] for completion in completions]
+    matches = [re.match(pattern, r, flags=re.DOTALL) for r in responses]
+    return [0.5 if match else 0.0 for match in matches]
+
+def count_xml(text) -> float:
+    count = 0.0
+    if text.count("<reasoning>\n") == 1:
+        count += 0.125
+    if text.count("\n</reasoning>\n") == 1:
+        count += 0.125
+    if text.count("\n<answer>\n") == 1:
+        count += 0.125
+        count -= len(text.split("\n</answer>\n")[-1])*0.001
+    if text.count("\n</answer>") == 1:
+        count += 0.125
+        count -= (len(text.split("\n</answer>")[-1]) - 1)*0.001
+    return count
+
+def xmlcount_reward_func(responses, **kwargs) -> list[float]:
+    # contents = [completion[0]["content"] for completion in completions]
+    return [count_xml(c) for c in responses]
+
+def extract_xml_answer(text: str) -> str:
+    answer = text.split("<answer>")[-1]
+    answer = answer.split("</answer>")[0]
+    return answer.strip()
+
+def int_reward_func(responses, **kwargs) -> list[float]:
+    # responses = [completion[0]['content'] for completion in completions]
+    extracted_responses = [extract_xml_answer(r) for r in responses]
+    return [0.5 if r.isdigit() else 0.0 for r in extracted_responses]
 
 tokenized_dataset = dataset.map(preprocess_function, batched=True)
 tokenized_dataset.set_format("torch")
@@ -91,6 +136,43 @@ def get_reward(model_output, target_string):
     else:
         return 0.0  # Zero reward for incorrect or no answer
 
+def get_reward2(model_output, target_string):
+
+    count_xml_r1 = count_xml(model_output)
+
+    # soft format 
+    pattern = r"<reasoning>.*?</reasoning>\s*<answer>.*?</answer>"
+    match = re.match(pattern, model_output, flags=re.DOTALL)
+    soft_format_reward = 0.5 if match else 0.0
+
+    # strict format 
+    pattern = r"^<reasoning>\n.*?\n</reasoning>\n<answer>\n.*?\n</answer>\n$"
+    match = re.match(pattern, model_output, flags=re.DOTALL)
+    strict_format_reward = 0.5 if match else 0.0
+
+    # int reward
+    extracted_response = extract_xml_answer(model_output)
+    int_reward = 0.5 if extracted_response.isdigit() else 0.0
+
+    # correctness reward
+    golden_answer = extract_xml_answer(target_string)
+    correctness_reward = 2.0 if extracted_response == golden_answer else 0.0
+
+    # string similarity reward
+    # this reward can be severely biased when other rewards are zeros
+    # import difflib
+    # sm = difflib.SequenceMatcher(None, model_output, target_string)
+    # sim_reward = sm.ratio() / 100.0
+
+
+    print(f"    {count_xml_r1=}")
+    print(f"    {soft_format_reward=}")
+    print(f"    {strict_format_reward=}")
+    print(f"    {int_reward=}")
+    print(f"    {correctness_reward=}")
+    print("Similarity:", sm.ratio())
+
+    return count_xml_r1 + soft_format_reward + strict_format_reward + int_reward + correctness_reward + sim_reward
 
 # Function to plot the training loss curve
 def plot_loss_curve(losses, epochs):
@@ -157,7 +239,7 @@ for epoch in range(NUM_EPOCHS):
             num_return_sequences=1,  # Generate only one sequence per input
             do_sample=True,  # Sample
             top_k=0,
-            temperature=0.7,
+            temperature=0.99,
         )
         generated_texts = tokenizer.batch_decode(outputs, skip_special_tokens=True)
         input_texts = tokenizer.batch_decode(input_ids, skip_special_tokens=True)
@@ -166,7 +248,10 @@ for epoch in range(NUM_EPOCHS):
         batch_rewards = []
         target_texts = batch["answer"]
         for i in range(len(generated_texts)):
-            reward = get_reward(generated_texts[i], target_texts[i])  # Use the reward function
+            print("[DEBUG] answer = ", extract_hash_answer(target_texts[i]))
+            # print(f"{generated_texts[i]=}")
+            # print(f"{target_texts[i]=}")
+            reward = get_reward2(generated_texts[i], target_texts[i])  # Use the reward function
             batch_rewards.append(reward)
         batch_rewards = np.array(batch_rewards, dtype=np.float32)
         all_rewards.extend(batch_rewards)  # Accumulate for global baseline
@@ -193,6 +278,7 @@ for epoch in range(NUM_EPOCHS):
             )  # shape: (seq_len-1)
             log_probs.append(action_log_probs)
 
+            # print("[DEBUG] strict format_reward_func: ", strict_format_reward_func(generated_texts))
             # Print a sample output
             if i == 0:  # Print only for the first item in the batch for simplicity
                 print_sample_output(input_texts[i], generated_texts[i], target_texts[i], batch_rewards[i])
@@ -200,6 +286,7 @@ for epoch in range(NUM_EPOCHS):
 
         # Calculate the policy loss with REINFORCE++
         global_baseline = np.mean(all_rewards)  # Calculate global baseline
+        print("[DEBUG] np.mean(all_rewards) = ", global_baseline) 
         policy_loss = []
         for i in range(len(log_probs)):
             episode_reward = torch.tensor(batch_rewards[i]).to(device)  # Use CPU
