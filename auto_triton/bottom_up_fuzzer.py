@@ -126,5 +126,5 @@ def get_inputs():
 # ───────────────────────── 6.  demo ─────────────────────────
 if __name__=="__main__":
     random.seed(time.time_ns())
-    print(make_module(depth=6))
+    print(make_module(depth=8))
 
