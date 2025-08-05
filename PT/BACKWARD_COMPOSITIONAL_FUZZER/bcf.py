@@ -71,10 +71,11 @@ def try_reuse_rankN(
             continue
         if cty.rank != required_ty.rank:
             continue
-        if cty.shape == required_ty.shape:
+        if cty.shape == required_ty.shape and random.random() < 0.5:
             return maybe_unary_wrap(cname, required_ty, produced, counter)
         if allow_expand and broadcastable_expand(cty.shape, required_ty.shape):
             e = fresh(counter)
+            import pdb; pdb.set_trace()
             produced[e] = (f"{cname}.expand{required_ty.shape}", required_ty, [cname])
             return maybe_unary_wrap(e, required_ty, produced, counter)
     return None
@@ -315,5 +316,5 @@ def make_module(
 # ───────────────────────── 8) CLI demo ────────────────────────────────────
 if __name__ == "__main__":
     for i in range(10):
-        print(make_module(depth=12, min_chain=4, seed=20250803 + i))
+        print(make_module(depth=16, min_chain=4, seed=i))
 
